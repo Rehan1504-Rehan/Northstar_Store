@@ -4,6 +4,9 @@ Northstar Store is a real, beginner-friendly Django 5 e-commerce application. It
 
 It is intentionally a simple order system: customers can place an order with shipping details, but no fake payment gateway is included.
 
+## Live site 
+- The site is live but if render black interface comes please wait for 2 minutes for render to activate site.
+- https://project-02-2k0z.onrender.com/
 ## Features
 
 - Customer registration with first name, last name, unique email validation, and Django password hashing.
