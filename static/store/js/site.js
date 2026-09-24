@@ -143,30 +143,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // --- Product image zoom (detail page) -----------------------------------
-    const zoomWrap = document.getElementById("pdZoom");
-    const zoomImage = document.getElementById("pdImage");
-    if (zoomWrap && zoomImage) {
-        if (window.matchMedia && window.matchMedia("(pointer: fine)").matches) {
-            zoomWrap.addEventListener("pointermove", (event) => {
-                const rect = zoomWrap.getBoundingClientRect();
-                const x = ((event.clientX - rect.left) / rect.width) * 100;
-                const y = ((event.clientY - rect.top) / rect.height) * 100;
-                zoomImage.style.transformOrigin = `${x}% ${y}%`;
-                zoomWrap.classList.add("zoomed");
-            });
-            zoomWrap.addEventListener("pointerleave", () => {
-                zoomWrap.classList.remove("zoomed");
-                zoomImage.style.transformOrigin = "center center";
-            });
-        } else {
-            // Touch devices: tap to toggle the zoom instead of hover.
-            zoomWrap.addEventListener("click", () => {
-                zoomWrap.classList.toggle("zoomed");
-            });
-        }
-    }
-
     // --- Show / hide password buttons ---------------------------------------
     document.querySelectorAll("[data-password-toggle]").forEach((button) => {
         button.addEventListener("click", () => {
