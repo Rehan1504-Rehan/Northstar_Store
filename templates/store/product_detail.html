@@ -24,7 +24,6 @@
                     {% with off=product|discount_percent %}
                         {% if product.has_discount and off %}<span class="pc-badge pc-badge-sale pd-badge">{{ off }}% OFF</span>{% endif %}
                     {% endwith %}
-                    {% if product.image %}<span class="pd-zoom-hint d-none d-md-inline-flex"><i class="bi bi-zoom-in me-1"></i>Hover to zoom</span>{% endif %}
                 </div>
             </div>
         </div>

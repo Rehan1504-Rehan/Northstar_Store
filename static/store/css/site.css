@@ -871,7 +871,6 @@ html.nav-lock, body.nav-lock {
 }
 .pc-media-link { display: block; height: 100%; }
 .pc-image { height: 100%; object-fit: cover; transition: transform .55s cubic-bezier(.2, .7, .3, 1); width: 100%; }
-.product-card:hover .pc-image { transform: scale(1.06); }
 
 .placeholder-image {
     align-items: center;
@@ -1170,12 +1169,10 @@ html.nav-lock, body.nav-lock {
     background: linear-gradient(160deg, #f6f7fc, #eef0f8);
     border: 1px solid var(--line);
     border-radius: var(--radius-xl);
-    cursor: zoom-in;
     overflow: hidden;
     position: relative;
 }
 .pd-image { height: 100%; object-fit: cover; transition: transform .35s ease; width: 100%; }
-.pd-zoom.zoomed .pd-image { transform: scale(1.8); }
 .pd-image-placeholder { font-size: 3.2rem; }
 .pd-badge { font-size: .8rem; left: 16px; padding: .4rem .85rem; top: 16px; }
 .pd-zoom-hint {
