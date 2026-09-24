@@ -489,3 +489,17 @@ A discount price must be lower than the regular price. Leave it blank for a prod
 - CSRF tokens are included on all state-changing storefront forms.
 - The admin uses Django's built-in permission and password systems.
 - Production should use `DEBUG=False`, HTTPS, a restricted `ALLOWED_HOSTS`, a trusted CSRF origin list, and persistent media storage.
+
+
+## ShopVerse template integration
+
+The storefront adapts the design from [Rehan1504-Rehan/abcd](https://github.com/Rehan1504-Rehan/abcd), specifically `ecommece template 4 (final)`. Northstar branding, INR prices, and all Django commerce flows are retained.
+
+- `static/store/css/shopverse.css`: namespaced template hero, service, category, and responsive styles; isolated from Bootstrap dialogs and forms.
+- `static/store/css/template-theme.css`: shared Northstar theme and accessibility/responsive overrides.
+- `templates/store/home.html`: template-inspired hero and category tiles using live catalog data.
+- The existing Django product cards, search, account pages, cart, checkout, and order history remain authoritative. No demo products, fake reviews, countdowns, simulated payments, or local-storage cart were imported.
+- The hero uses the first featured product and displays a styled placeholder when an image or catalog is absent. Categories and deals populate from Django Admin.
+- Poppins and icon fonts use external CDNs, as do the existing Bootstrap assets. No additional build step is needed.
+
+Validate with `python manage.py check` and `python manage.py test`.

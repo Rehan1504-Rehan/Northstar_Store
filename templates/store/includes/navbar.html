@@ -66,6 +66,8 @@
     <nav class="header-nav d-none d-lg-block" aria-label="Product categories">
         <div class="container">
             <ul class="header-nav-list">
+                <li><button class="nav-pill nav-pill-categories border-0" type="button" data-nav-open aria-controls="navDrawer" aria-expanded="false"><i class="bi bi-grid me-2"></i>All Categories<i class="bi bi-chevron-down ms-2"></i></button></li>
+                <li><a class="nav-pill{% if request.resolver_match.url_name == 'home' %} active{% endif %}" href="{% url 'store:home' %}">Home</a></li>
                 <li>
                     <a class="nav-pill{% if request.resolver_match.url_name == 'product_list' %} active{% endif %}" href="{% url 'store:product_list' %}">All Products</a>
                 </li>
