@@ -18,7 +18,7 @@
 .brand-mark { border-radius: 12px; background: var(--accent-grad); }
 .brand-word { font-size: 1.5rem; letter-spacing: -.7px; }
 .brand-word em { color: var(--accent); }
-.header-search { border-radius: 50px; border: 2px solid #e9ecef; background: #f8f9fd; }
+.header-search { border-radius: 50px; border: 2px solid #e9ecef; background: #f8f9fa; }
 .header-search-btn { background: var(--accent-grad); border-radius: 50%; margin: 4px; width: 38px; height: 38px; }
 .header-nav { background: #fff; }
 .nav-pill { border-radius: 8px; font-size: .85rem; }
@@ -37,22 +37,12 @@
 .deals-panel { background: linear-gradient(135deg, #1a1a2e, #16213e); }
 .site-footer { background: #1a1a2e; }
 .cta-band { background: linear-gradient(135deg, #efedff, #f7eefe); border-color: #e4deff; }
-.sv-hero { min-height: 540px; }
-.sv-hero-slide { padding: 70px 0; }
-.sv-hero-product-card { display: block; }
+
+/* Hero placeholder */
 .sv-hero-placeholder { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #efedff, #e2dcff); color: #6c63ff; border-radius: 16px; }
 .sv-hero-placeholder i { font-size: 8rem; line-height: 1.3; }
 .sv-hero-placeholder span { font-size: .85rem; }
-.sv-product-caption { display: block; color: #1a1a2e; font-size: .85rem; margin-top: 15px; }
-.sv-product-caption strong { display: block; color: #6c63ff; font-size: 1.1rem; margin-top: 5px; }
-.sv-hero-desc { color: #c3c6d6; }
-.sv-hero .sv-btn-outline { color: #d1cdff; border-color: #8b83ff; }
-.sv-hero-actions { margin-bottom: 0; flex-wrap: wrap; }
-.sv-hero-bg-shapes { pointer-events: none; }
-.sv-service-text p { margin-bottom: 0; }
-.sv-categories-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-.sv-category-card { text-decoration: none; }
-.sv-category-card p { margin-bottom: 0; }
+
 a:focus-visible, button:focus-visible { outline: 3px solid #ff9b54; outline-offset: 4px; }
 @media (max-width: 992px) {
     .sv-hero { min-height: auto; }
@@ -66,8 +56,4 @@ a:focus-visible, button:focus-visible { outline: 3px solid #ff9b54; outline-offs
     .sv-hero-features { flex-wrap: wrap; gap: 12px; }
     .sv-hero .sv-line2, .sv-hero .sv-line3 { font-size: 2.1rem; }
     .sv-hero .sv-btn-lg { padding: 13px 22px; font-size: .9rem; }
-}
-@media (prefers-reduced-motion: reduce) {
-    .sv-template *, .sv-template *::before, .sv-template *::after { animation: none !important; transition: none !important; }
-    html { scroll-behavior: auto; }
 }

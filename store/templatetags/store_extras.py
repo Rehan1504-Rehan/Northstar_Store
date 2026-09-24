@@ -104,6 +104,50 @@ def category_icon(category):
     return "bi-grid-3x3-gap"
 
 
+# Font Awesome icon mapping for the ShopVerse template sections.
+_FA_ICON_KEYWORDS = (
+    (("electronic", "tech", "gadget"), "fa-microchip"),
+    (("game", "gaming", "console"), "fa-gamepad"),
+    (("mobile", "phone", "smartphone"), "fa-mobile-alt"),
+    (("laptop", "computer", "notebook"), "fa-laptop"),
+    (("accessor",), "fa-gem"),
+    (("audio", "headphone", "earphone", "earbud", "sound", "speaker"), "fa-headphones-alt"),
+    (("camera", "photo"), "fa-camera"),
+    (("tv", "television", "monitor", "display"), "fa-tv"),
+    (("keyboard",), "fa-keyboard"),
+    (("mouse",), "fa-mouse"),
+    (("tablet",), "fa-tablet-alt"),
+    (("watch", "wearable", "fitness"), "fa-clock"),
+    (("home", "kitchen", "appliance"), "fa-couch"),
+    (("fashion", "cloth", "wear", "apparel"), "fa-tshirt"),
+    (("shoe", "footwear", "sneaker"), "fa-shoe-prints"),
+    (("book", "stationery"), "fa-book"),
+    (("sport", "gym", "fitness", "outdoor"), "fa-running"),
+    (("beauty", "care", "skin"), "fa-spa"),
+    (("toy", "kid", "baby"), "fa-puzzle-piece"),
+    (("gift",), "fa-gift"),
+)
+
+
+@register.filter
+def category_fa_icon(category):
+    """Pick a Font Awesome icon class that matches the category's name/slug."""
+    haystack = f"{getattr(category, 'slug', '')} {getattr(category, 'name', '')}".lower()
+    for keywords, icon in _FA_ICON_KEYWORDS:
+        if any(keyword in haystack for keyword in keywords):
+            return icon
+    return "fa-th"
+
+
+@register.filter
+def mul(value, arg):
+    """Multiply value by arg. Used for animation delays and progress widths."""
+    try:
+        return int(value) * int(arg)
+    except (TypeError, ValueError):
+        return 0
+
+
 @register.simple_tag(takes_context=True)
 def querystring(context, **kwargs):
     """Rebuild the current GET query string with some keys replaced.
