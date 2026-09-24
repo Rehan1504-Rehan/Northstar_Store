@@ -843,3 +843,35 @@ class AdminSetupCommandTests(TestCase):
         self.assertTrue(admin.is_superuser)
         self.assertTrue(admin.check_password(env["ADMIN_PASSWORD"]))
         self.assertEqual(User.objects.filter(username="ADMIN").count(), 1)
+
+
+class ShopVerseTemplateTests(TestCase):
+    def test_empty_catalog_renders_template_without_demo_content(self):
+        response = self.client.get(reverse('store:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'store/css/shopverse.css')
+        self.assertContains(response, 'sv-hero')
+        self.assertContains(response, 'Your next upgrade')
+        self.assertContains(response, 'Categories coming soon')
+        self.assertNotContains(response, 'ShopVerse')
+        self.assertNotContains(response, 'SAVE20')
+        self.assertNotContains(response, 'slider-btn')
+
+    def test_template_uses_live_product_category_and_price(self):
+        category = Category.objects.create(name='Audio')
+        product = Product.objects.create(
+            name='Studio Headphones', description='Reference headphones',
+            price=Decimal('2500'), discount_price=Decimal('2000'),
+            category=category, available=True, stock_quantity=7,
+        )
+        response = self.client.get(reverse('store:home'))
+        self.assertContains(response, product.get_absolute_url())
+        self.assertContains(response, category.get_absolute_url())
+        self.assertContains(response, 'Studio Headphones')
+        self.assertContains(response, '₹2,000')
+        self.assertContains(response, '-20%')
+        self.assertContains(response, 'sv-category-card')
+        self.client.force_login(User.objects.create_user(username='template-shopper'))
+        response = self.client.get(reverse('store:home'))
+        self.assertContains(response, reverse('store:add_to_cart', args=[product.id]))
+        self.assertContains(response, 'csrfmiddlewaretoken')
