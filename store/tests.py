@@ -577,7 +577,7 @@ class MediaPersistenceTests(TestCase):
         with override_settings(DEBUG=False, SERVE_MEDIA=True):
             response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, ONE_PIXEL_PNG)
+        self.assertEqual(b"".join(response.streaming_content), ONE_PIXEL_PNG)
         self.assertEqual(response["Content-Type"], "image/png")
         self.assertIn("max-age", response["Cache-Control"])
 
@@ -588,7 +588,7 @@ class MediaPersistenceTests(TestCase):
         with override_settings(DEBUG=False, MEDIA_ROOT=Path(tempfile.mkdtemp())):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.content, ONE_PIXEL_PNG)
+            self.assertEqual(b"".join(response.streaming_content), ONE_PIXEL_PNG)
 
     def test_storefront_renders_the_working_image_url(self):
         self.upload()
@@ -900,3 +900,84 @@ class ShopVerseTemplateTests(TestCase):
         response = self.client.get(reverse('store:home'))
         self.assertContains(response, reverse('store:add_to_cart', args=[product.id]))
         self.assertContains(response, 'csrfmiddlewaretoken')
+
+
+class AdminProductChangelistTests(TestCase):
+    """Guard against the query-per-row pattern that killed the admin page.
+
+    The changelist used to run a Category lookup and an image-existence check
+    for every row: 200+ sequential round trips at the default page size, which
+    on a remote database outlived the gunicorn worker timeout and surfaced as
+    "Internal Server Error" on /admin/store/product/. Rendering N rows must
+    cost the same handful of queries as rendering one.
+    """
+
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username="list-admin",
+            password="Very-strong-admin-password-123",
+            email="list-admin@example.com",
+        )
+        self.client.force_login(self.admin)
+        self.category = Category.objects.create(name="Lighting")
+
+    def make_products(self, count, with_image=True):
+        for i in range(count):
+            product = Product.objects.create(
+                name=f"Lamp {i}",
+                description="A warm desk lamp.",
+                price=Decimal("40.00"),
+                category=self.category,
+                stock_quantity=2,
+            )
+            if with_image:
+                product.image = SimpleUploadedFile(
+                    f"lamp-{i}.png", ONE_PIXEL_PNG, content_type="image/png"
+                )
+                product.save()
+
+    def changelist_query_count(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as captured:
+            response = self.client.get(reverse("admin:store_product_changelist"))
+        self.assertEqual(response.status_code, 200)
+        return response, len(captured.captured_queries)
+
+    def test_query_count_does_not_grow_with_the_number_of_rows(self):
+        self.make_products(5)
+        self.changelist_query_count()  # warm per-process caches first
+        _, small = self.changelist_query_count()
+        self.make_products(15)
+        _, large = self.changelist_query_count()
+        self.assertEqual(
+            small,
+            large,
+            "changelist queries must not scale with row count (N+1 regression)",
+        )
+        # A generous ceiling: sessions, auth, filters and the list itself.
+        self.assertLessEqual(large, 15)
+
+    def test_rows_with_a_stored_image_render_the_thumbnail(self):
+        self.make_products(1)
+        response, _ = self.changelist_query_count()
+        self.assertContains(response, "<img")
+        self.assertContains(response, "/media/products/")
+
+    def test_rows_pointing_at_a_lost_file_say_so(self):
+        self.make_products(1)
+        MediaFile.objects.all().delete()
+        response, _ = self.changelist_query_count()
+        self.assertContains(response, "Missing file — re-upload")
+
+    def test_category_changelist_counts_products_without_a_query_per_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        self.make_products(8, with_image=False)
+        with CaptureQueriesContext(connection) as captured:
+            response = self.client.get(reverse("admin:store_category_changelist"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "8")
+        self.assertLessEqual(len(captured.captured_queries), 8)

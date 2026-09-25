@@ -138,6 +138,10 @@ class Product(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
+            # The default ordering above is a bare ``ORDER BY created_at DESC``
+            # (admin changelist, "newest" listings); the composite indexes below
+            # cannot serve it because ``available``/``category`` lead them.
+            models.Index(fields=["-created_at"]),
             models.Index(fields=["available", "-created_at"]),
             models.Index(fields=["category", "-created_at"]),
         ]
