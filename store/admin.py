@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BuiltInUserAdmin
+from django.db.models import Count, Exists, OuterRef
 from django.utils.html import format_html
 
 from .models import Cart, CartItem, Category, MediaFile, Order, OrderItem, Product
@@ -29,8 +30,15 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ("name", "description")
     prepopulated_fields = {"slug": ("name",)}
 
-    @admin.display(description="Products")
+    def get_queryset(self, request):
+        # Count products in the list query itself instead of one COUNT per row.
+        return super().get_queryset(request).annotate(_product_count=Count("products"))
+
+    @admin.display(description="Products", ordering="_product_count")
     def product_count(self, obj):
+        annotated = getattr(obj, "_product_count", None)
+        if annotated is not None:
+            return annotated
         return obj.products.count()
 
 
@@ -60,6 +68,10 @@ class ProductAdminForm(forms.ModelForm):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
+    # Product rows carry a 48px thumbnail each, and every column render used to
+    # cost extra queries. Keep the page small and let get_queryset() pay for
+    # everything up front in one round trip (see note there).
+    list_per_page = 25
     list_display = (
         "image_preview",
         "name",
@@ -85,18 +97,38 @@ class ProductAdmin(admin.ModelAdmin):
         ("Timestamps", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )
 
+    def get_queryset(self, request):
+        # The changelist used to issue one extra query per row: a Category
+        # lookup for the category column and an image-existence check for the
+        # thumbnail column. With the default 100 rows per page that was 200+
+        # sequential round trips to the production database - slow enough for
+        # the request to blow past gunicorn's worker timeout and die (Render
+        # showed a worker abort / SIGKILL and the page a 500). Join the
+        # category and fold the existence check into the single list query.
+        queryset = super().get_queryset(request).select_related("category")
+        if settings.MEDIA_STORAGE == "database":
+            queryset = queryset.annotate(
+                _media_stored=Exists(MediaFile.objects.filter(name=OuterRef("image")))
+            )
+        return queryset
+
     @admin.display(description="Image")
     def image_preview(self, obj):
         if not obj.image:
             return format_html('<span style="color:#9ca3af;">No image</span>')
+        # ``get_queryset`` annotates whether the file is still in the database,
+        # so a page of rows costs no extra queries here. The fallback covers the
+        # filesystem backend and renders that bypass that queryset.
+        media_stored = getattr(obj, "_media_stored", None)
+        if media_stored is None:
+            try:
+                media_stored = obj.image.storage.exists(obj.image.name)
+            except Exception:  # pragma: no cover - never block the changelist
+                media_stored = True
         # A row can still point at a file that is gone (for example an upload
         # made before media moved into the database, which the host wiped on
         # the next deploy). Say so plainly instead of showing a broken image.
-        try:
-            missing = not obj.image.storage.exists(obj.image.name)
-        except Exception:  # pragma: no cover - never block the changelist
-            missing = False
-        if missing:
+        if not media_stored:
             return format_html(
                 '<span style="color:#b91c1c;" title="{}">Missing file — re-upload</span>',
                 obj.image.name,
@@ -112,6 +144,9 @@ class ProductAdmin(admin.ModelAdmin):
 class MediaFileAdmin(admin.ModelAdmin):
     """Read-only view of the uploads stored in the database."""
 
+    # Each row renders a thumbnail served from /media/, so a 100-row page
+    # triggers 100 full-size image downloads through Django. Keep it small.
+    list_per_page = 25
     list_display = ("name", "preview", "content_type", "size_display", "updated_at")
     search_fields = ("name", "content_type")
     list_filter = ("content_type", "updated_at")

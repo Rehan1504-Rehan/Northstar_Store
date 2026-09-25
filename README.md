@@ -432,7 +432,7 @@ python manage.py showmigrations
 Start Gunicorn locally (PowerShell or Command Prompt):
 
 ```bat
-gunicorn ecommerce.wsgi --log-file -
+gunicorn ecommerce.wsgi --workers 2 --threads 4 --timeout 60 --graceful-timeout 30 --log-file -
 ```
 
 On Windows, Gunicorn is primarily intended for Railway/Linux. Use `python manage.py runserver` for local Windows development.

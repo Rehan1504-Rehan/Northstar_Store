@@ -1,4 +1,5 @@
 from decimal import Decimal, InvalidOperation
+from io import BytesIO
 
 from django.conf import settings
 from django.contrib import messages
@@ -6,11 +7,12 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.core.exceptions import SuspiciousFileOperation
+from django.core.files.base import File
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, FloatField, Prefetch, Q, Value
 from django.db.models.functions import Coalesce
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 from django.views.static import serve as static_serve
@@ -587,7 +589,15 @@ def serve_media(request: HttpRequest, path: str) -> HttpResponse:
     except SuspiciousFileOperation:
         raise Http404("Invalid media path.")
 
-    record = MediaFile.objects.filter(name=name).first()
+    # Metadata first, without the blob: an admin page full of thumbnails makes
+    # this view the busiest endpoint on the site, and pulling megabytes of
+    # image content out of the database just to answer a 304 revalidation (or
+    # to compute an ETag) is what used to balloon worker memory.
+    record = (
+        MediaFile.objects.filter(name=name)
+        .only("name", "content_type", "size", "checksum", "updated_at")
+        .first()
+    )
     if record is None:
         return _serve_media_from_disk(request, name)
 
@@ -597,10 +607,17 @@ def serve_media(request: HttpRequest, path: str) -> HttpResponse:
     if conditional is not None:
         return conditional
 
-    response = HttpResponse(
-        record.data, content_type=record.content_type or "application/octet-stream"
+    # Fetch the payload on its own and stream it out in chunks so the response
+    # is not assembled as one giant buffer in the worker.
+    payload = MediaFile.objects.filter(name=name).values_list("content", flat=True).first()
+    if payload is None:  # pragma: no cover - deleted between the two queries
+        raise Http404("Media file disappeared while being served.")
+
+    response = StreamingHttpResponse(
+        File(BytesIO(payload)),
+        content_type=record.content_type or "application/octet-stream",
     )
-    response["Content-Length"] = str(record.size)
+    response["Content-Length"] = str(len(payload))
     response["Last-Modified"] = http_date(last_modified)
     if etag:
         response["ETag"] = etag

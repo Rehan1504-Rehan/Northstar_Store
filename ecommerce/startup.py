@@ -89,7 +89,15 @@ def _clear_missing_product_images() -> None:
     if not referenced:
         return
 
-    stored = set(MediaFile.objects.filter(name__in=referenced).values_list("name", flat=True))
+    # Chunk the lookup: a big IN (...) with thousands of names is slow to plan
+    # and hammers memory on small instances, and this runs at every worker boot.
+    stored = set()
+    referenced_list = sorted(referenced)
+    for start in range(0, len(referenced_list), 500):
+        chunk = referenced_list[start : start + 500]
+        stored.update(
+            MediaFile.objects.filter(name__in=chunk).values_list("name", flat=True)
+        )
     missing = referenced - stored
     if not missing:
         return
