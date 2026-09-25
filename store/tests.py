@@ -829,6 +829,31 @@ class ProfileTests(TestCase):
         self.assertContains(response, reverse("store:register"))
 
 
+class AdminRoutingTests(TestCase):
+    """Keep the plural products link compatible with Django Admin."""
+
+    def test_plural_products_path_opens_the_product_changelist(self):
+        admin_user = User.objects.create_superuser(
+            username="route-admin",
+            password="Admin-pass-123",
+            email="route-admin@example.com",
+        )
+        Product.objects.create(
+            name="Admin route product",
+            description="A product used to verify the admin link.",
+            price=Decimal("10.00"),
+            stock_quantity=1,
+        )
+        self.client.force_login(admin_user)
+
+        response = self.client.get("/admin/store/products", follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.redirect_chain[-1][0], "/admin/store/product/")
+        self.assertContains(response, "Select product to change")
+        self.assertContains(response, "Admin route product")
+
+
 class AdminSetupCommandTests(TestCase):
     def test_create_admin_uses_environment_and_is_idempotent(self):
         env = {
