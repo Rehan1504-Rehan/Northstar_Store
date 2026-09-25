@@ -2,11 +2,24 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
+from django.views.generic import RedirectView
 
 from store import views as store_views
 
 
+# Django uses the singular model name in admin URLs (``product``), but the
+# storefront and the deployment documentation have historically linked to the
+# more natural plural form (``products``). Keep that public link working by
+# redirecting it to Django's real changelist URL instead of leaving admins with
+# a confusing 404/500-looking error page.
 urlpatterns = [
+    path(
+        "admin/store/products/",
+        RedirectView.as_view(
+            pattern_name="admin:store_product_changelist",
+            permanent=False,
+        ),
+    ),
     path("admin/", admin.site.urls),
     path("", include("store.urls")),
 ]
