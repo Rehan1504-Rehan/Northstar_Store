@@ -191,10 +191,11 @@ def home(request: HttpRequest) -> HttpResponse:
         category_cards.append(
             {"category": category, "product_count": category.product_count, "sample": sample}
         )
+        # Every in-stock product in the category is shown, not a sample.
         category_sections.append(
             {
                 "category": category,
-                "products": products[:8],
+                "products": products,
                 "product_count": category.product_count,
             }
         )

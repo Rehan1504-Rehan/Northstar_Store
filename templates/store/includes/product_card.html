@@ -13,7 +13,7 @@
         {% if product.image %}
             <img src="{{ product.image.url }}" alt="" class="product-image" loading="lazy" decoding="async" data-fallback>
         {% else %}
-            <div class="placeholder-image product-image"><span>No image available</span></div>
+            <img src="{{ product|product_fallback_image }}" alt="" class="product-image" loading="lazy" decoding="async" data-fallback>
         {% endif %}
     </a>
     <div class="product-info">

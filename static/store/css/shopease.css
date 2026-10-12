@@ -1149,3 +1149,65 @@ a.category-card:hover { color: var(--text-main); border-color: #bfdbfe; }
 @media (max-width: 480px) {
     .footer .footer-grid { grid-template-columns: 1fr; }
 }
+/* ---------- Cart: Proceed to Buy ----------
+   Full-width blue button with the order total on it. It sets its own
+   background-image so the gradient from site.css's .btn-accent cannot paint
+   over the blue, and the selector is specific enough to beat `.summary-card a`. */
+.summary-card a.btn-proceed-buy,
+a.btn-proceed-buy {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 15px 20px;
+    border: 0;
+    border-radius: 8px;
+    background-color: #2563EB;
+    background-image: none;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+    color: #FFFFFF;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.2s, transform 0.2s;
+}
+.summary-card a.btn-proceed-buy:hover,
+.summary-card a.btn-proceed-buy:focus-visible,
+a.btn-proceed-buy:hover,
+a.btn-proceed-buy:focus-visible {
+    background-color: #1D4ED8;
+    background-image: none;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    outline: 3px solid rgba(37, 99, 235, 0.35);
+    outline-offset: 2px;
+}
+.btn-proceed-label { display: inline-flex; align-items: center; }
+.btn-proceed-label::after {
+    content: "\2192";
+    margin-left: 8px;
+}
+.btn-proceed-total {
+    font-size: 1.15rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+/* ---------- Home: category shelves ---------- */
+.category-shelf + .category-shelf { margin-top: 48px; }
+.category-shelf .shelf-head { margin-bottom: 20px; align-items: flex-end; }
+.shelf-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-navy);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+.shelf-count { color: var(--text-secondary); font-size: 14px; margin: 2px 0 0; }
+.category-shelf .products-grid { margin-top: 0; }
+
+/* Give the cart's last row room above the footer, so the summary card and
+   "Continue shopping" never run into it. */
+.cart-section { padding-bottom: 4rem; }

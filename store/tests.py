@@ -17,7 +17,7 @@ from django.urls import reverse
 from ecommerce.startup import run_startup_tasks
 
 from .admin import ProductAdminForm
-from .models import CartItem, Category, MediaFile, Order, OrderItem, Product
+from .models import Cart, CartItem, Category, MediaFile, Order, OrderItem, Product
 
 
 User = get_user_model()
@@ -985,3 +985,134 @@ class AdminProductChangelistTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "8")
         self.assertLessEqual(len(captured.captured_queries), 8)
+
+
+class CategoryShelfAndFallbackImageTests(TestCase):
+    """Shop by Category lists every in-stock product, each with a photo."""
+
+    def make_product(self, name, category=None, stock=3, available=True, image=None):
+        product = Product.objects.create(
+            name=name,
+            description=f"{name} description.",
+            price=Decimal("100.00"),
+            category=category,
+            stock_quantity=stock,
+            available=available,
+        )
+        if image:
+            Product.objects.filter(pk=product.pk).update(image=image)
+            product.refresh_from_db()
+        return product
+
+    def test_category_shelf_shows_every_in_stock_product_not_a_sample(self):
+        fashion = Category.objects.create(name="Fashion")
+        names = [f"Tee {i:02d}" for i in range(11)]
+        for name in names:
+            self.make_product(name, category=fashion)
+        self.make_product("Sold Out Tee", category=fashion, stock=0)
+        self.make_product("Hidden Tee", category=fashion, available=False)
+
+        response = self.client.get(reverse("store:home"))
+
+        self.assertEqual(response.status_code, 200)
+        shelf = response.content.decode()
+        self.assertIn('id="category-fashion"', shelf)
+        for name in names:
+            self.assertContains(response, name)
+        self.assertNotContains(response, "Sold Out Tee")
+        self.assertNotContains(response, "Hidden Tee")
+        self.assertContains(response, "View all Fashion")
+        self.assertContains(response, "11 products in stock")
+
+    def test_shelves_sit_under_shop_by_category_before_featured_products(self):
+        audio = Category.objects.create(name="Audio")
+        self.make_product("Pocket Speaker", category=audio)
+        content = self.client.get(reverse("store:home")).content.decode()
+        by_category = content.index("Shop by Category")
+        shelf = content.index('id="category-audio"')
+        featured = content.index("Featured Products")
+        newsletter = content.index("Stay Updated")
+        self.assertLess(by_category, shelf)
+        self.assertLess(shelf, featured)
+        self.assertLess(featured, newsletter)
+
+    def test_product_without_upload_gets_category_photo_and_keeps_its_name(self):
+        fashion = Category.objects.create(name="Fashion")
+        self.make_product("Cotton Shirt", category=fashion)
+        response = self.client.get(reverse("store:home"))
+        self.assertContains(response, "Cotton Shirt")
+        self.assertContains(response, "store/img/fallback/fashion.jpg")
+        self.assertNotContains(response, "No image available")
+
+    def test_product_with_upload_uses_its_own_photo(self):
+        audio = Category.objects.create(name="Audio")
+        product = self.make_product("Studio Mic", category=audio, image="products/2026/10/mic.png")
+        response = self.client.get(reverse("store:home"))
+        self.assertContains(response, product.image.url)
+        self.assertNotContains(response, "store/img/fallback/audio.jpg")
+
+    def test_fallback_photo_follows_category_then_product_name(self):
+        from .templatetags.store_extras import product_fallback_image
+
+        electronics = Category.objects.create(name="Electronics")
+        fashion = Category.objects.create(name="Clothing & Apparel")
+        cases = [
+            (Product(name="Gaming Mouse", category=None), "gaming.jpg"),
+            (Product(name="Stereo Set", category=electronics), "electronics.jpg"),
+            (Product(name="Running Shoes", category=None), "footwear.jpg"),
+            (Product(name="Basic Tee", category=fashion), "fashion.jpg"),
+            (Product(name="Mystery Item", category=None), "default.jpg"),
+            (Product(name="Book Of Poems", category=Category.objects.create(name="Books")), "default.jpg"),
+        ]
+        for product, filename in cases:
+            with self.subTest(product=product.name):
+                self.assertTrue(product_fallback_image(product).endswith(f"store/img/fallback/{filename}"))
+
+    def test_fallback_images_exist_in_the_repository(self):
+        from django.conf import settings
+
+        fallback_dir = Path(settings.BASE_DIR) / "static" / "store" / "img" / "fallback"
+        for filename in ("gaming", "audio", "watch", "footwear", "sports", "fashion",
+                         "electronics", "home", "beauty", "grocery", "default"):
+            with self.subTest(filename=filename):
+                self.assertTrue((fallback_dir / f"{filename}.jpg").is_file())
+
+
+class CartProceedToBuyTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="buyer", password="Strong-password-123")
+        self.client.force_login(self.user)
+        category = Category.objects.create(name="Home")
+        self.product = Product.objects.create(
+            name="Kettle",
+            description="Steel kettle.",
+            price=Decimal("1500.00"),
+            discount_price=Decimal("1200.00"),
+            category=category,
+            stock_quantity=10,
+        )
+        self.cart = Cart.objects.create(user=self.user)
+        CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+
+    def test_proceed_to_buy_links_to_checkout_with_order_total(self):
+        response = self.client.get(reverse("store:cart"))
+        self.assertEqual(response.status_code, 200)
+        checkout_url = reverse("store:checkout")
+        self.assertContains(response, f'href="{checkout_url}" class="btn-proceed-buy')
+        self.assertContains(response, "Proceed to Buy")
+        self.assertContains(response, '<span class="btn-proceed-total">₹2,400</span>')
+        self.assertNotContains(response, "Proceed to Checkout")
+
+    def test_proceed_to_buy_button_is_full_width_blue_with_white_text(self):
+        response = self.client.get(reverse("store:cart"))
+        css = Path(settings.BASE_DIR, "static", "store", "css", "shopease.css").read_text()
+        rule_start = css.index("a.btn-proceed-buy {")
+        rule = css[rule_start:css.index("}", rule_start)]
+        self.assertIn("width: 100%", rule)
+        self.assertIn("background-color: #2563EB", rule)
+        self.assertIn("color: #FFFFFF", rule)
+        self.assertContains(response, "btn-proceed-buy")
+
+    def test_checkout_page_still_loads_from_the_button_target(self):
+        response = self.client.get(reverse("store:checkout"))
+        self.assertEqual(response.status_code, 200)

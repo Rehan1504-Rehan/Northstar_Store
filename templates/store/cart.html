@@ -15,7 +15,7 @@
     </div>
 </section>
 
-<section class="container section-block pt-4">
+<section class="container section-block pt-4 cart-section">
     {% if items %}
         <div class="row g-4">
             <div class="col-lg-8" data-reveal>
@@ -70,7 +70,7 @@
                     <hr class="summary-divider">
                     <div class="summary-total"><span>Total</span><strong>{{ cart_total|inr }}</strong></div>
                     {% if cart_savings > 0 %}<p class="summary-save-note">You save {{ cart_savings|inr }} on this order</p>{% endif %}
-                    <a href="{% url 'store:checkout' %}" class="btn btn-accent btn-lg rounded-pill w-100 mt-3">Proceed to Checkout<i class="bi bi-arrow-right ms-2"></i></a>
+                    <a href="{% url 'store:checkout' %}" class="btn-proceed-buy mt-3" aria-label="Proceed to Buy, order total {{ cart_total|inr }}"><span class="btn-proceed-label">Proceed to Buy</span><span class="btn-proceed-total">{{ cart_total|inr }}</span></a>
                     <p class="summary-foot"><i class="bi bi-shield-lock me-1"></i>Secure checkout — prices include all offers</p>
                 </div>
             </div>
