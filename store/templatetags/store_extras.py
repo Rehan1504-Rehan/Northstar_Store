@@ -6,6 +6,7 @@ fields on the models, never from values baked into templates.
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django import template
+from django.templatetags.static import static
 
 
 register = template.Library()
@@ -193,3 +194,44 @@ def querystring(context, **kwargs):
         else:
             params[key] = value
     return params.urlencode()
+
+
+# Category-relevant fallback photos for products that have no uploaded image.
+# Each entry is (keywords, file under static/store/img/fallback/). The first
+# entry whose keyword appears wins; more specific families come first so that,
+# for example, "smartwatch" is a watch and "sportswear" is sports.
+_FALLBACK_IMAGE_KEYWORDS = (
+    (("gaming", "game", "console", "controller"), "gaming.jpg"),
+    (("audio", "headphone", "earphone", "earbud", "speaker", "sound"), "audio.jpg"),
+    (("watch", "wearable", "fitness band"), "watch.jpg"),
+    (("shoe", "footwear", "sneaker", "sandal", "boot"), "footwear.jpg"),
+    (("sport", "gym", "fitness", "yoga", "outdoor"), "sports.jpg"),
+    (("fashion", "cloth", "apparel", "shirt", "jacket", "dress", "wear"), "fashion.jpg"),
+    (("electronic", "tech", "gadget", "laptop", "computer", "phone", "mobile", "tablet", "camera"), "electronics.jpg"),
+    (("home", "kitchen", "appliance", "living", "furniture", "decor", "coffee"), "home.jpg"),
+    (("beauty", "skin", "cosmetic", "makeup", "perfume"), "beauty.jpg"),
+    (("grocery", "food", "fruit", "vegetable", "snack"), "grocery.jpg"),
+)
+_DEFAULT_FALLBACK_IMAGE = "default.jpg"
+
+
+def _fallback_file_for(text):
+    haystack = text.lower()
+    for keywords, filename in _FALLBACK_IMAGE_KEYWORDS:
+        if any(keyword in haystack for keyword in keywords):
+            return filename
+    return None
+
+
+@register.filter
+def product_fallback_image(product):
+    """Static URL of a photo that suits a product without an uploaded image.
+
+    The category name is matched first, then the product name, so a product
+    still gets a relevant photo when its category is missing or generic.
+    Anything unmatched gets the neutral storefront image.
+    """
+    category = getattr(product, "category", None)
+    category_text = f"{getattr(category, 'slug', '')} {getattr(category, 'name', '')}" if category else ""
+    filename = _fallback_file_for(category_text) or _fallback_file_for(getattr(product, "name", "") or "")
+    return static(f"store/img/fallback/{filename or _DEFAULT_FALLBACK_IMAGE}")

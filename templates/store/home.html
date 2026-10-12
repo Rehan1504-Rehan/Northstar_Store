@@ -39,6 +39,23 @@
         {% else %}
             <p class="empty-note">Categories coming soon</p>
         {% endif %}
+
+        {% for section in category_sections %}
+        <div class="category-shelf" id="category-{{ section.category.slug }}">
+            <div class="shelf-head">
+                <div>
+                    <h3 class="shelf-title">{{ section.category.name }}</h3>
+                    <p class="shelf-count">{{ section.product_count }} product{{ section.product_count|pluralize }} in stock</p>
+                </div>
+                <a class="shelf-link" href="{{ section.category.get_absolute_url }}">View all {{ section.category.name }} &#8594;</a>
+            </div>
+            <div class="products-grid">
+                {% for product in section.products %}
+                    {% include 'store/includes/product_card.html' %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </section>
 
@@ -101,22 +118,6 @@
         </div>
     </div>
 </section>
-
-{% for section in category_sections %}
-<section class="section products-section" id="category-{{ section.category.slug }}">
-    <div class="container">
-        <div class="shelf-head">
-            <h2 class="section-title">{{ section.category.name }}</h2>
-            <a class="shelf-link" href="{{ section.category.get_absolute_url }}">View all {{ section.category.name }}</a>
-        </div>
-        <div class="products-grid">
-            {% for product in section.products %}
-                {% include 'store/includes/product_card.html' %}
-            {% endfor %}
-        </div>
-    </div>
-</section>
-{% endfor %}
 
 <section class="section newsletter-section">
     <div class="container newsletter-content">

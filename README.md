@@ -497,7 +497,9 @@ The storefront uses the layout from [Izhan-Rangrej/Northstar_Store_Template](htt
 
 - `static/store/css/shopease.css`: template header, navigation, hero, category grid, product cards, deals band, and footer. It also retints the existing cart, checkout, and account pages to the same navy and blue palette.
 - `static/store/js/shopease.js`: empty-search notice and the template's on-page newsletter confirmation. Email addresses are not stored.
-- `templates/store/home.html`: template sections filled with live catalog data. Every in-stock category still gets a homepage shelf.
+- `templates/store/home.html`: template sections filled with live catalog data. Under **Shop by Category**, every in-stock category shows its name, a **View all** link and every in-stock product in it (sold-out and hidden products are left out).
+- Products without an uploaded photo show a category-relevant fallback from `static/store/img/fallback/` (matched on the category name, then the product name). Anything unmatched uses `default.jpg`. The product name is always shown.
+- The cart's **Proceed to Buy** button is full width, blue with white text, shows the order total, and links to the existing checkout page.
 - Search, account, cart, checkout, and orders stay on the Django views. No demo products, fake reviews, or fake cart were imported.
 - The hero and deals images use a real product photo when one exists, and the template's stock photo only when the catalog has no image.
 
