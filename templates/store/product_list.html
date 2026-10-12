@@ -75,9 +75,9 @@
             {% endif %}
 
             {% if products %}
-                <div class="row row-cols-2 row-cols-md-3 g-3 g-md-4">
+                <div class="products-grid shop-grid">
                     {% for product in products %}
-                        <div class="col" data-reveal>{% include 'store/includes/product_card.html' %}</div>
+                        {% include 'store/includes/product_card.html' %}
                     {% endfor %}
                 </div>
                 {% include 'store/includes/pagination.html' %}

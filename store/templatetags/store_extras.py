@@ -129,6 +129,34 @@ _FA_ICON_KEYWORDS = (
 )
 
 
+_EMOJI_KEYWORDS = (
+    (("electronic", "tech", "gadget", "laptop", "computer"), "\U0001f4bb"),
+    (("game", "gaming", "console"), "\U0001f3ae"),
+    (("mobile", "phone", "smartphone"), "\U0001f4f1"),
+    (("audio", "headphone", "earphone", "earbud", "speaker", "sound"), "\U0001f3a7"),
+    (("camera", "photo"), "\U0001f4f7"),
+    (("watch", "wearable"), "\u231a"),
+    (("fashion", "cloth", "wear", "apparel"), "\U0001f455"),
+    (("shoe", "footwear", "sneaker"), "\U0001f45f"),
+    (("home", "kitchen", "living", "appliance"), "\U0001f3e0"),
+    (("beauty", "care", "skin"), "\U0001f484"),
+    (("grocery", "food"), "\U0001f34e"),
+    (("sport", "gym", "fitness", "outdoor"), "\u26bd"),
+    (("book", "stationery"), "\U0001f4da"),
+    (("toy", "kid", "baby"), "\U0001f9f8"),
+)
+
+
+@register.filter
+def category_emoji(category):
+    """Pick a template-style emoji for a live category name."""
+    haystack = f"{getattr(category, 'slug', '')} {getattr(category, 'name', '')}".lower()
+    for keywords, emoji in _EMOJI_KEYWORDS:
+        if any(keyword in haystack for keyword in keywords):
+            return emoji
+    return "\U0001f6cd"
+
+
 @register.filter
 def category_fa_icon(category):
     """Pick a Font Awesome icon class that matches the category's name/slug."""
