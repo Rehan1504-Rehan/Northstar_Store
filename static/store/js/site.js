@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // --- Header shadow once the page scrolls a little ---------------------
-    const header = document.querySelector(".site-header");
+    const header = document.querySelector(".header");
     if (header) {
         const onScroll = () => header.classList.toggle("is-scrolled", window.scrollY > 10);
         onScroll();

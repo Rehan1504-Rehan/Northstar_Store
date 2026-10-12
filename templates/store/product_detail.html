@@ -132,9 +132,9 @@
             </div>
             <a class="link-arrow" href="{% url 'store:product_list' %}">Shop all<i class="bi bi-arrow-right"></i></a>
         </div>
-        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3 g-md-4">
+        <div class="products-grid">
             {% for product in related_products %}
-                <div class="col" data-reveal>{% include 'store/includes/product_card.html' %}</div>
+                {% include 'store/includes/product_card.html' %}
             {% endfor %}
         </div>
     </div>

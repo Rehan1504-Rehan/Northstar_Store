@@ -21,6 +21,7 @@ from django.utils.http import http_date, url_has_allowed_host_and_scheme
 
 from .forms import CheckoutForm, LoginForm, ProfileForm, RegistrationForm
 from .models import Cart, CartItem, Category, MediaFile, Order, OrderItem, Product
+from .templatetags.store_extras import discount_percent
 from .storage import normalize_name
 
 
@@ -197,9 +198,22 @@ def home(request: HttpRequest) -> HttpResponse:
                 "product_count": category.product_count,
             }
         )
-    deal_products = Product.objects.filter(
-        available=True, stock_quantity__gt=0, discount_price__isnull=False
-    ).select_related("category")[:4]
+    featured_products = list(featured_products)
+    deal_products = list(
+        Product.objects.filter(
+            available=True, stock_quantity__gt=0, discount_price__isnull=False
+        ).select_related("category")[:4]
+    )
+    max_discount = 0
+    for product in deal_products:
+        max_discount = max(max_discount, discount_percent(product))
+
+    def _image_url(products):
+        for product in products:
+            if product.image:
+                return product.image.url
+        return ""
+
     return render(
         request,
         "store/home.html",
@@ -208,6 +222,9 @@ def home(request: HttpRequest) -> HttpResponse:
             "category_cards": category_cards,
             "category_sections": category_sections,
             "deal_products": deal_products,
+            "max_discount": max_discount,
+            "hero_image_url": _image_url(featured_products),
+            "deals_image_url": _image_url(deal_products) or _image_url(featured_products),
         },
     )
 

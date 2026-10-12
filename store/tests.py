@@ -74,7 +74,7 @@ class StoreFlowTests(TestCase):
         self.assertRedirects(response, reverse("store:home"))
         self.assertFalse(response.wsgi_request.user.is_authenticated)
 
-    def test_left_navigation_drawer_uses_clean_category_names(self):
+    def test_navigation_uses_clean_category_names(self):
         Category.objects.create(name="Gaming", description="Games and consoles")
         Product.objects.create(
             name="Arcade Pad",
@@ -85,9 +85,8 @@ class StoreFlowTests(TestCase):
             available=True,
         )
         response = self.client.get(reverse("store:home"))
-        self.assertContains(response, 'id="navDrawer"')
-        self.assertContains(response, "nav-drawer")
-        self.assertContains(response, "data-nav-open")
+        self.assertContains(response, "header-nav")
+        self.assertContains(response, "nav-list")
         self.assertContains(response, "Electronics")
         self.assertContains(response, "Gaming")
         self.assertNotContains(response, "Electronics1")
@@ -137,7 +136,7 @@ class StoreFlowTests(TestCase):
         self.assertContains(response, fashion.get_absolute_url())
         self.assertNotContains(response, "Empty Aisle")
         self.assertContains(response, "header-nav")
-        self.assertContains(response, "All Products")
+        self.assertContains(response, ">All</a>")
 
     def test_search_and_category_filter(self):
         other = Product.objects.create(
@@ -870,36 +869,41 @@ class AdminSetupCommandTests(TestCase):
         self.assertEqual(User.objects.filter(username="ADMIN").count(), 1)
 
 
-class ShopVerseTemplateTests(TestCase):
+class ShopEaseTemplateTests(TestCase):
     def test_empty_catalog_renders_template_without_demo_content(self):
-        response = self.client.get(reverse('store:home'))
+        response = self.client.get(reverse("store:home"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'store/css/shopverse.css')
-        self.assertContains(response, 'sv-hero')
-        self.assertContains(response, 'Your next upgrade')
-        self.assertContains(response, 'Categories coming soon')
-        self.assertNotContains(response, 'ShopVerse')
-        self.assertNotContains(response, 'SAVE20')
-        self.assertNotContains(response, 'slider-btn')
+        self.assertContains(response, "store/css/shopease.css")
+        self.assertContains(response, "Everything You Need")
+        self.assertContains(response, "Northstar Store")
+        self.assertContains(response, "Categories coming soon")
+        self.assertNotContains(response, "ShopEase")
+        self.assertNotContains(response, "ShopVerse")
+        self.assertNotContains(response, "Wireless Headphones")
+        self.assertNotContains(response, "SAVE20")
 
     def test_template_uses_live_product_category_and_price(self):
-        category = Category.objects.create(name='Audio')
+        category = Category.objects.create(name="Audio")
         product = Product.objects.create(
-            name='Studio Headphones', description='Reference headphones',
-            price=Decimal('2500'), discount_price=Decimal('2000'),
-            category=category, available=True, stock_quantity=7,
+            name="Studio Headphones",
+            description="Reference headphones",
+            price=Decimal("2500"),
+            discount_price=Decimal("2000"),
+            category=category,
+            available=True,
+            stock_quantity=7,
         )
-        response = self.client.get(reverse('store:home'))
+        response = self.client.get(reverse("store:home"))
         self.assertContains(response, product.get_absolute_url())
         self.assertContains(response, category.get_absolute_url())
-        self.assertContains(response, 'Studio Headphones')
-        self.assertContains(response, '₹2,000')
-        self.assertContains(response, '-20%')
-        self.assertContains(response, 'sv-category-card')
-        self.client.force_login(User.objects.create_user(username='template-shopper'))
-        response = self.client.get(reverse('store:home'))
-        self.assertContains(response, reverse('store:add_to_cart', args=[product.id]))
-        self.assertContains(response, 'csrfmiddlewaretoken')
+        self.assertContains(response, "Studio Headphones")
+        self.assertContains(response, "₹2,000")
+        self.assertContains(response, "-20%")
+        self.assertContains(response, "category-card")
+        self.client.force_login(User.objects.create_user(username="template-shopper"))
+        response = self.client.get(reverse("store:home"))
+        self.assertContains(response, reverse("store:add_to_cart", args=[product.id]))
+        self.assertContains(response, "csrfmiddlewaretoken")
 
 
 class AdminProductChangelistTests(TestCase):

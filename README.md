@@ -491,15 +491,14 @@ A discount price must be lower than the regular price. Leave it blank for a prod
 - Production should use `DEBUG=False`, HTTPS, a restricted `ALLOWED_HOSTS`, a trusted CSRF origin list, and persistent media storage.
 
 
-## ShopVerse template integration
+## ShopEase template integration
 
-The storefront adapts the design from [Rehan1504-Rehan/abcd](https://github.com/Rehan1504-Rehan/abcd), specifically `ecommece template 4 (final)`. Northstar branding, INR prices, and all Django commerce flows are retained.
+The storefront uses the layout from [Izhan-Rangrej/Northstar_Store_Template](https://github.com/Izhan-Rangrej/Northstar_Store_Template). Northstar branding, INR prices, live categories, and all Django commerce flows are retained.
 
-- `static/store/css/shopverse.css`: namespaced template hero, service, category, and responsive styles; isolated from Bootstrap dialogs and forms.
-- `static/store/css/template-theme.css`: shared Northstar theme and accessibility/responsive overrides.
-- `templates/store/home.html`: template-inspired hero and category tiles using live catalog data.
-- The existing Django product cards, search, account pages, cart, checkout, and order history remain authoritative. No demo products, fake reviews, countdowns, simulated payments, or local-storage cart were imported.
-- The hero uses the first featured product and displays a styled placeholder when an image or catalog is absent. Categories and deals populate from Django Admin.
-- Poppins and icon fonts use external CDNs, as do the existing Bootstrap assets. No additional build step is needed.
+- `static/store/css/shopease.css`: template header, navigation, hero, category grid, product cards, deals band, and footer. It also retints the existing cart, checkout, and account pages to the same navy and blue palette.
+- `static/store/js/shopease.js`: empty-search notice and the template's on-page newsletter confirmation. Email addresses are not stored.
+- `templates/store/home.html`: template sections filled with live catalog data. Every in-stock category still gets a homepage shelf.
+- Search, account, cart, checkout, and orders stay on the Django views. No demo products, fake reviews, or fake cart were imported.
+- The hero and deals images use a real product photo when one exists, and the template's stock photo only when the catalog has no image.
 
 Validate with `python manage.py check` and `python manage.py test`.
