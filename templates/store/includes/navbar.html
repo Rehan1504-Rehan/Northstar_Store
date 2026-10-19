@@ -1,10 +1,7 @@
 {% load store_extras %}
 <header class="header" id="siteHeader">
     <div class="container header-content">
-        <a href="{% url 'store:home' %}" class="logo" aria-label="Northstar Store home">
-            &#128722;
-            <span>Northstar Store</span>
-        </a>
+        {% include 'store/includes/brand_logo.html' %}
 
         <form class="search-bar" id="searchForm" method="get" action="{% url 'store:product_list' %}" role="search">
             <label class="visually-hidden" for="searchInput">Search products</label>
