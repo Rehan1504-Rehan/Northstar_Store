@@ -370,47 +370,94 @@ img {
 
 .categories-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
 }
 
 a.category-card,
 .category-card {
-    display: block;
+    align-items: center;
+    display: flex;
+    min-width: 0;
+    min-height: 82px;
+    gap: 12px;
     background-color: var(--white);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    text-align: center;
-    padding: 20px 12px;
+    text-align: left;
+    padding: 12px;
     cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
     overflow: hidden;
-    height: auto;
-    gap: 0;
+    height: 100%;
 }
 
 .category-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-hover);
+    border-color: #bfdbfe;
+}
+
+.category-media {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--light-blue);
+}
+
+.category-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .category-icon {
-    font-size: 36px;
-    margin-bottom: 10px;
-}
-
-.category-card img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 12px;
+    height: 100%;
+    background: var(--light-blue);
+    font-size: 28px;
+    line-height: 1;
 }
 
-.category-card h3 {
+.category-info {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.category-name {
+    overflow: hidden;
+    color: var(--primary-navy);
     font-size: 14px;
-    font-weight: 600;
-    color: var(--text-main);
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.category-count {
+    display: block;
+    margin-top: 3px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.category-arrow {
+    margin-left: auto;
+    color: var(--text-secondary);
+    transition: color 0.2s, transform 0.2s;
+}
+
+.category-card:hover .category-arrow {
+    color: var(--primary-blue);
+    transform: translateX(3px);
 }
 
 
@@ -896,7 +943,7 @@ a.category-card,
     }
 
     .categories-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
     }
 
     .features-grid {
@@ -1043,17 +1090,6 @@ a.btn-cart {
     min-height: 2.6em;
 }
 
-.category-photo-fallback {
-    width: 100%;
-    height: 100px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--light-blue);
-    font-size: 32px;
-}
 a.category-card:hover { color: var(--text-main); border-color: #bfdbfe; }
 
 .hero { overflow: visible; position: relative; }
@@ -1211,3 +1247,43 @@ a.btn-proceed-buy:focus-visible {
 /* Give the cart's last row room above the footer, so the summary card and
    "Continue shopping" never run into it. */
 .cart-section { padding-bottom: 4rem; }
+
+/* Branded Northstar mark and wordmark, shared by the storefront and auth pages. */
+.brand-logo {
+    gap: .55rem;
+    line-height: 1;
+    min-width: 0;
+}
+.brand-logo,
+.brand-logo:hover { color: #fff; }
+.brand-logo .brand-mark {
+    display: block;
+    flex: 0 0 auto;
+    height: 34px;
+    width: 34px;
+    border-radius: 11px;
+    box-shadow: 0 5px 12px rgba(37, 99, 235, .3);
+    object-fit: cover;
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+.brand-logo:hover .brand-mark {
+    box-shadow: 0 8px 18px rgba(37, 99, 235, .4);
+    transform: rotate(-6deg) scale(1.04);
+}
+.brand-logo .brand-word {
+    color: inherit;
+    font-size: 1.16rem;
+}
+.brand-logo .brand-word em { color: #93c5fd; }
+.brand-logo.auth-logo,
+.brand-logo.auth-logo:hover {
+    color: var(--primary-navy);
+    justify-content: center;
+    margin-bottom: 8px;
+}
+.brand-logo.auth-logo .brand-word em { color: var(--primary-blue); }
+
+@media (max-width: 480px) {
+    .brand-logo .brand-mark { height: 30px; width: 30px; border-radius: 9px; }
+    .brand-logo .brand-word { font-size: 1rem; }
+}

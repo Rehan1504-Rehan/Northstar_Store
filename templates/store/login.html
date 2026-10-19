@@ -6,7 +6,7 @@
     <div class="container">
         <div class="auth-card mx-auto" data-reveal>
             <div class="text-center">
-                <a class="logo auth-logo" href="{% url 'store:home' %}">&#128722; <span>Northstar Store</span></a>
+                {% include 'store/includes/brand_logo.html' with extra_class='auth-logo' %}
                 <h1 class="auth-title">Welcome back</h1>
                 <p class="auth-sub">Sign in to your Northstar Store account.</p>
             </div>

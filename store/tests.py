@@ -877,6 +877,8 @@ class ShopEaseTemplateTests(TestCase):
         self.assertContains(response, "Everything You Need")
         self.assertContains(response, "Northstar Store")
         self.assertContains(response, "Categories coming soon")
+        self.assertContains(response, "store/img/northstar-mark.svg")
+        self.assertContains(response, '<span class="brand-word">Northstar <em>Store</em></span>')
         self.assertNotContains(response, "ShopEase")
         self.assertNotContains(response, "ShopVerse")
         self.assertNotContains(response, "Wireless Headphones")
@@ -904,6 +906,25 @@ class ShopEaseTemplateTests(TestCase):
         response = self.client.get(reverse("store:home"))
         self.assertContains(response, reverse("store:add_to_cart", args=[product.id]))
         self.assertContains(response, "csrfmiddlewaretoken")
+
+    def test_shop_by_category_cards_show_names_and_live_product_counts(self):
+        audio = Category.objects.create(name="Audio")
+        for name in ("Studio Headphones", "Pocket Speaker"):
+            Product.objects.create(
+                name=name,
+                description=f"{name} for everyday listening.",
+                price=Decimal("1500"),
+                category=audio,
+                available=True,
+                stock_quantity=3,
+            )
+
+        response = self.client.get(reverse("store:home"))
+
+        self.assertContains(response, "Shop by Category")
+        self.assertContains(response, '<h3 class="category-name">Audio</h3>')
+        self.assertContains(response, '<span class="category-count">2 products</span>')
+        self.assertContains(response, 'class="category-media" aria-hidden="true"')
 
 
 class AdminProductChangelistTests(TestCase):

@@ -1,0 +1,5 @@
+{% load static %}
+<a href="{% url 'store:home' %}" class="logo brand brand-logo{% if extra_class %} {{ extra_class }}{% endif %}" aria-label="Northstar Store home">
+    <img class="brand-mark" src="{% static 'store/img/northstar-mark.svg' %}" alt="" width="34" height="34" decoding="async">
+    <span class="brand-word">Northstar <em>Store</em></span>
+</a>

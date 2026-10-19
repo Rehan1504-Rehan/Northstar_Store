@@ -26,13 +26,18 @@
             <div class="categories-grid">
                 {% for card in category_cards %}
                     <a class="category-card" href="{{ card.category.get_absolute_url }}">
-                        <div class="category-icon" aria-hidden="true">{{ card.category|category_emoji }}</div>
-                        {% if card.sample and card.sample.image %}
-                            <img src="{{ card.sample.image.url }}" alt="{{ card.category.name }}" loading="lazy" data-fallback>
-                        {% else %}
-                            <div class="category-photo-fallback" aria-hidden="true">{{ card.category|category_emoji }}</div>
-                        {% endif %}
-                        <h3>{{ card.category.name }}</h3>
+                        <div class="category-media" aria-hidden="true">
+                            {% if card.sample and card.sample.image %}
+                                <img src="{{ card.sample.image.url }}" alt="" loading="lazy" decoding="async" data-fallback>
+                            {% else %}
+                                <span class="category-icon">{{ card.category|category_emoji }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="category-info">
+                            <h3 class="category-name">{{ card.category.name }}</h3>
+                            <span class="category-count">{{ card.product_count }} product{{ card.product_count|pluralize }}</span>
+                        </div>
+                        <span class="category-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
                     </a>
                 {% endfor %}
             </div>
